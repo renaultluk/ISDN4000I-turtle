@@ -71,11 +71,17 @@ void loop() {
   for (int i=0; i<8; i++) {
     tmpVal = 1024 - analogRead(pinArr[i]);
     tmpPos += tmpVal * i;
+    Serial.print("Sensor ");
+    Serial.print(i);
+    Serial.print(" data: ");
+    Serial.print("\t");
+    Serial.print(tmpVal);
+    Serial.print("\t");
     valSum += tmpVal;
     }
 
     tmpPos = tmpPos/valSum;
-    tmpPos = map(tmpPos, 0, 8, -255, 255);
+    // tmpPos = tmpPos/8.0*1224-800;
 
     for (int j=0; j<7; j++) {
       avArr[j] = avArr[j+1];
@@ -88,7 +94,7 @@ void loop() {
 
     finPos = finPos/8.0;
 
-    if (abs(finPos) < -250) {
+    if (finPos < -255) {
       Serial.println("No line detected");
       motorDrive(0, M1IN1, M1IN2);
       motorDrive(0, M2IN1, M2IN2);
