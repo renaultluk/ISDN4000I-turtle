@@ -15,7 +15,8 @@ float tmpVal = 0;
 int pinArr[8] = {A0,A1,A2,A3,A4,A5,A6,A7};
 float avArr[8];
 
-float threshold_left = -200.0;
+byte noLine = 0;
+float threshold_left = -100.0;
 float threshold_right = 200.0;
 
 /********************************* TASK 2 *********************************/
@@ -36,6 +37,16 @@ void motorDrive(int power, int in1, int in2) {
     }
 }
 
+void turn_right() {
+  motorDrive(75, M1IN1, M1IN2);
+  motorDrive(50, M2IN1, M2IN2);
+}
+
+void turn_left() {
+  motorDrive(50, M1IN1, M1IN2);
+  motorDrive(75, M2IN1, M2IN2);
+}
+
 void setup() {
     /********************************* TASK 3 *********************************/
     // Using the motorDrive function, set the 2 motors to spin full power in one
@@ -47,11 +58,11 @@ void setup() {
 
     Serial.begin(9600);
     
-    motorDrive(255, M1IN1, M1IN2);
-    motorDrive(255, M2IN1, M2IN2);
+//    motorDrive(255, M1IN1, M1IN2);
+//    motorDrive(255, M2IN1, M2IN2);
 //    delay(10000);
-    motorDrive(-127, M1IN1, M1IN2);
-    motorDrive(-127, M2IN1, M2IN2);
+//    motorDrive(-127, M1IN1, M1IN2);
+//     motorDrive(-127, M2IN1, M2IN2);
 //    delay(10000);
 }
 
@@ -65,12 +76,16 @@ void loop() {
    Serial.print(ultRead(ULT_SEN));
    Serial.print("\t");
   
+  noLine = 1;
   tmpPos = 0.0;
   finPos = 0.0;
   valSum = 0.0;
   for (int i=0; i<8; i++) {
     tmpVal = 1024 - analogRead(pinArr[i]);
     tmpPos += tmpVal * i;
+    if (tmpVal > 20) {
+      noLine = 0;
+      }
     Serial.print("Sensor ");
     Serial.print(i);
     Serial.print(" data: ");
@@ -81,7 +96,7 @@ void loop() {
     }
 
     tmpPos = tmpPos/valSum;
-    // tmpPos = tmpPos/8.0*1224-800;
+    tmpPos = tmpPos/8.0*512 - 210;
 
     for (int j=0; j<7; j++) {
       avArr[j] = avArr[j+1];
@@ -94,25 +109,30 @@ void loop() {
 
     finPos = finPos/8.0;
 
-    if (finPos < -255) {
+    if (noLine) {
       Serial.println("No line detected");
       motorDrive(0, M1IN1, M1IN2);
       motorDrive(0, M2IN1, M2IN2);
       } else {
-        Serial.print("Line Position: ");
-        Serial.println(finPos);
+      Serial.print("Line Position: ");
+      Serial.print(finPos);
+      Serial.print("\t");
     
-        motorDrive(finPos, M1IN1, M1IN2);
-        motorDrive(finPos, M2IN1, M2IN2);
+      motorDrive(75, M1IN1, M1IN2);
+      motorDrive(75, M2IN1, M2IN2);
 
-        if (finPos < threshold_left) {
-            Serial.println("Turn left");
-          } else if (finPos > threshold_right) {
-            Serial.println("Turn right");
-          } else {
-            Serial.println();
-          }
-        }
+      if (finPos < threshold_left) {
+        Serial.println("Turn left");
+        turn_left();
+      } else if (finPos > threshold_right) {
+        Serial.println("Turn right");
+        turn_right();
+      } else {
+        Serial.println();
+      }  
+      }
+    
+        
     
 }
 
